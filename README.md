@@ -4,11 +4,13 @@ Context compression for Zed's AI agent. Same answers, fraction of the tokens.
 
 ## What it does
 
-This extension gives Zed's AI agent three MCP tools:
+This extension registers [Headroom](https://github.com/chopratejas/headroom) as an MCP context server in Zed, giving the AI agent three tools:
 
-- **headroom_compress** — Compress content on demand (files, JSON, logs, search results)
-- **headroom_retrieve** — Retrieve original uncompressed content by hash
-- **headroom_stats** — Session compression statistics
+| Tool | What it does |
+|------|-------------|
+| `headroom_compress` | Compress large content (files, JSON, logs, search results) on demand |
+| `headroom_retrieve` | Retrieve original uncompressed content by hash |
+| `headroom_stats` | Show session stats: tokens saved, cost saved, recent events |
 
 ## Setup
 
@@ -18,19 +20,21 @@ This extension gives Zed's AI agent three MCP tools:
 pip install "headroom-ai[mcp]"
 ```
 
-### 2. Install this extension
+### 2. Install the extension
 
-In Zed: `zed: install extension` → search "Headroom"
+In Zed: **Extensions** → search **Headroom** → **Install**
 
-### 3. (Optional) Enable automatic compression
+That's it. Zed's agent now has access to compression tools.
 
-For automatic compression of ALL LLM traffic, start the Headroom proxy and point Zed at it:
+### 3. (Optional) Automatic compression for all traffic
+
+The MCP tools above are on-demand — the agent calls them when it wants to compress. For automatic compression of every LLM request, start the Headroom proxy:
 
 ```bash
 headroom proxy
 ```
 
-Then in Zed settings (`settings.json`):
+Then add to your Zed settings (`settings.json`):
 
 ```json
 {
@@ -42,18 +46,20 @@ Then in Zed settings (`settings.json`):
 }
 ```
 
-Now every request Zed's agent makes is automatically compressed — 50-90% fewer tokens, same quality.
+Now every request is automatically compressed — 50-90% fewer tokens, same quality. The MCP tools and proxy work independently or together.
 
 ## How it works
 
-**MCP tools (this extension):** The agent can call `headroom_compress` to shrink large content before reasoning over it. Originals are stored locally and retrievable via `headroom_retrieve`.
+The extension tells Zed to run `headroom mcp serve` as a background process. This starts Headroom's MCP server, which exposes the compression tools over the Model Context Protocol. Zed's agent can then call these tools like any other MCP tool.
 
-**Proxy (optional):** All LLM API calls route through Headroom's compression pipeline. JSON arrays, code, logs, and text are automatically compressed. The agent doesn't need to do anything — compression is transparent.
-
-Both work independently or together.
+Compression uses Headroom's full pipeline: SmartCrusher for JSON, CodeCompressor for code, Kompress for text (with `[ml]` extra). Originals are stored locally for the session and retrievable on demand — nothing is lost.
 
 ## Requirements
 
-- [Headroom](https://github.com/chopratejas/headroom) (`pip install "headroom-ai[mcp]"`)
+- [Headroom](https://github.com/chopratejas/headroom) — `pip install "headroom-ai[mcp]"`
 - Python 3.10+
-- `headroom` command must be in PATH
+- `headroom` command in PATH
+
+## License
+
+Apache License 2.0

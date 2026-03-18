@@ -1,20 +1,11 @@
-use zed_extension_api::{self as zed, ContextServerId, Command, Result};
+use zed_extension_api::{self as zed, Command, ContextServerId, Result};
 
 /// Headroom extension for Zed.
 ///
-/// Provides context compression for Zed's AI agent via MCP:
-/// - headroom_compress: Compress content on demand
-/// - headroom_retrieve: Retrieve original uncompressed content
-/// - headroom_stats: Session compression statistics
+/// Registers Headroom as an MCP context server, giving Zed's AI agent
+/// three tools: headroom_compress, headroom_retrieve, headroom_stats.
 ///
-/// For automatic compression of ALL traffic, configure Zed to use
-/// the Headroom proxy as a custom OpenAI-compatible endpoint:
-///
-/// 1. Start proxy: `headroom proxy`
-/// 2. In Zed settings, set:
-///    "language_models": {
-///      "openai": { "api_url": "http://localhost:8787" }
-///    }
+/// Requires `headroom` CLI in PATH (`pip install "headroom-ai[mcp]"`).
 struct HeadroomExtension;
 
 impl zed::Extension for HeadroomExtension {
@@ -27,7 +18,6 @@ impl zed::Extension for HeadroomExtension {
         _id: &ContextServerId,
         _project: &zed::Project,
     ) -> Result<Command> {
-        // Try headroom in PATH first, fall back to python -m
         Ok(Command {
             command: "headroom".to_string(),
             args: vec!["mcp".to_string(), "serve".to_string()],
