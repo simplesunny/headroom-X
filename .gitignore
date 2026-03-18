@@ -1,0 +1,4 @@
+target/
+
+# Vitals provenance data
+.vitals/
